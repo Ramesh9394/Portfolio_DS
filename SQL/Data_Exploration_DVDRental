@@ -1,0 +1,405 @@
+-- Data Exploration
+SELECT * FROM actor;
+
+SELECT * FROM address;
+
+/* we want to send out a promotional email to our existing customers, 
+which means we're going to need some information.
+*/
+SELECT first_name, last_name, email FROM customer;
+
+/*
+
+*/
+SELECT * FROM film;
+SELECT distinct rating from film;
+
+/* 
+A customer forgot their wallet at our store and we need to track down their
+email to inform them.
+So the question is, what is the email for the customer with the name Nancy Thomas?
+*/
+SELECT email from customer
+WHERE first_name = 'Nancy' AND last_name = 'Thomas';
+/*
+So a customer wants to know what the movie Outlaw Hankey is about.
+Could you give them the description for the movie Outlaw Hankey?
+*/
+SELECT description from film
+where title = 'Outlaw Hanky';
+
+/*
+So challenge number three is a customer is late on their movie return, and we've mailed them a letter
+to their address at '259 Ipoh Drive' and we should also call them on the phone to let them know.
+So well, we want to do is, can you get us the phone number for the customer who lives at this address
+of 259 Ipoh Drive?
+*/
+SELECT phone FROM address
+WHERE address  = '259 Ipoh Drive';
+
+/*
+So your first challenge task, we want to reward our first 10 paying customers, so the question is,
+what are the customer IDs of the first 10 customers who ever created a payment?
+*/
+SELECT customer_id,payment_date FROM payment
+ORDER BY payment_date ASC
+LIMIT 10;
+
+/*
+So the next challenge task is a customer wants to quickly rent a video to watch over their short lunch
+break.
+What are the titles of the five shortest that is in length of runtime movies?
+*/
+SELECT title, length FROM film
+ORDER BY length ASC
+LIMIT 5;
+
+/*
+Just quickly, if that previous customer can watch any movie that is 50 minutes or less in runtime,
+how many options the she or he have?
+*/
+SELECT title, length FROM film
+WHERE length <= 50
+ORDER BY length ASC;
+-- Connt
+SELECT COUNT(title) FROM film
+WHERE length <= 50;
+
+/*
+How many payment transactions were greater than $5.00?
+*/
+SELECT COUNT(payment_id) FROM payment
+WHERE amount >= 5;
+
+-- How many actors have a first name that starts with the letter P?
+SELECT COUNT(actor_id) FROM actor
+WHERE first_name LIKE 'P%';
+
+-- How many unique districts are our customers from?
+SELECT DISTINCT COUNT(district) FROM address; -- Checking difference
+SELECT COUNT(DISTINCT district) FROM address;
+
+-- Retrieve the list of names for those distinct districts from the previous question.
+SELECT DISTINCT district FROM address;
+
+-- How many films have a rating of R and a replacement cost between $5 and $15?
+SELECT COUNT(film_id) FROM film
+WHERE rating = 'R' AND replacement_cost BETWEEN 5 AND 15;
+
+-- How many films have the word Truman somewhere in the title?
+SELECT COUNT(film_id) FROM film
+WHERE title LIKE '%Truman%';
+
+-- --------------------------------------------------------------------------------
+-- --------------------------------------------------------------------------------
+/*
+Your first challenge task goes as follows, we have two staff members with staff I.D. one and two.
+We want to give a bonus to the staff member that handled the most payments, most in terms of number
+of payments processed, not total dollar amount.
+So how many payments that each staff member handle and who gets the bonus?
+*/
+SELECT staff_id, COUNT(payment_date) as trasactions_handled FROM payment
+WHERE staff_id IN (1,2)
+GROUP BY staff_id
+ORDER BY COUNT(payment_date) DESC;
+-- --------------
+SELECT staff_id, COUNT(payment_date) as trasactions_handled FROM payment
+WHERE staff_id = 1 OR staff_id = 2
+GROUP BY staff_id
+ORDER BY COUNT(payment_date) DESC;
+
+/*
+Corporate headquarters is conducting a study on the relationship between replacement cost and the movies
+MPPA rting (e.g. G, PG, R, etc.) What is the average replacement cost per
+MPPA rating?
+*/
+SELECT rating, ROUND(AVG(replacement_cost),2) AS avg_rplcment_cost FROM film
+GROUP BY rating
+ORDER BY AVG(replacement_cost) DESC;
+
+/*
+We're running a promotion to reward our top five customers with coupons.
+What are the customer IDs of the top five customers based off total expenditure or total spend?
+*/
+SELECT customer_id, SUM(amount) AS total_expenditure FROM payment
+GROUP BY customer_id
+ORDER BY SUM(amount) DESC
+LIMIT 6;
+
+/*
+We are launching a platinum service for our most loyal customers.
+We will assign platinum status to customers that have had 40 or more transaction payments.
+What customer IDs are eligible for platinum status?
+*/
+SELECT customer_id, COUNT(amount) trasaction_count FROM payment
+GROUP BY customer_id
+HAVING COUNT(amount) >= 40
+ORDER BY COUNT(amount) DESC;
+
+/*
+What are the customer IDs of customers who have spent more than one hundred dollars in payment transactions
+with our staff_id member 2?
+*/
+SELECT customer_id, SUM(amount) AS total_trasaction 
+FROM payment
+WHERE staff_id  = 2
+GROUP BY customer_id
+HAVING SUM(amount) >= 100;
+
+-- 1. Return the customer IDs of customers who have spent at least $110 with the staff member who has an ID of 2.
+SELECT customer_id, SUM(amount) AS total_expenditure 
+FROM payment
+WHERE staff_id = 2
+GROUP BY customer_id
+HAVING SUM(amount) > 110;
+
+
+-- 2. How many films begin with the letter J?
+SELECT COUNT(film_id)
+FROM film 
+WHERE title LIKE 'J%';
+
+-- 3. What customer has the highest customer ID number whose name starts with an 'E' and has an address ID lower than 500?
+SELECT customer_id, first_name, last_name
+FROM customer
+WHERE first_name LIKE 'E%' AND address_id <500
+ORDER BY customer_id DESC;
+-- --------------- Sub Querry ------------------
+SELECT first_name, last_name
+FROM customer
+WHERE customer_id = (
+	SELECT MAX(customer_id)
+	FROM customer
+	WHERE first_name LIKE 'E%' AND address_id <500
+	);
+
+-- --------------------------------------------------------------------
+-- ------------------------ Joins -------------------------------------
+/*
+So let's imagine that a California sales tax law has changed and we need to alert our customers to this
+through email.
+So the question is, what are the emails of the customers who live in California?
+*/
+SELECT email, district 
+FROM customer c
+INNER JOIN address a
+ON c.address_id = a.address_id
+WHERE district = 'California';
+-- --------------SubQuery----------------
+SELECT email
+FROM Customer
+WHERE address_id IN (
+	SELECT address_id
+	FROM address
+	WHERE district = 'California'
+	);
+	
+/*
+A customer walks into the store and there are a huge fan of this actor, Nick Wahlberg, and they want
+to know which movies has Nick Wahlberg in it.
+*/
+SELECT title
+FROM film f
+INNER JOIN film_actor fa
+ON f.film_id = fa.film_id
+INNER JOIN actor a
+ON fa.actor_id = a.actor_id
+WHERE first_name = 'Nick' AND last_name = 'Wahlberg'
+ORDER BY title;
+-- ---------------Subquery----------------------
+SELECT title
+FROM film
+WHERE film_id IN (
+	SELECT film_id
+	FROM film_actor
+	WHERE actor_id IN (
+		SELECT actor_id 
+		FROM actor
+		WHERE first_name = 'Nick' AND last_name = 'Wahlberg' 
+		)
+	)
+ORDER BY title;
+
+/*
+ during which months that payments occur and also format your answer to return back the full month name.
+*/
+SELECT DISTINCT(TO_CHAR(payment_date, 'MONTH'))
+FROM payment;
+
+--  how many payments occurred on a Monday?
+SELECT COUNT(*) 
+FROM payment
+WHERE EXTRACT(DOW FROM payment_date) = 1;
+-- ----------------------------Data Exploration ----------------------
+-- 1. Year Wise famous Actor
+
+
+-- 2. Year Wise best Movie/Film
+-- 3. Best Year for rental business
+-- 4. Best City/District for Rental business
+-- 5. Best Country for Rental Business
+-- 6. Famous language and language of Best film 
+-- 7. Average retun days
+-- 8. Best store which has made most business
+-- 9. The customer who has watched most no of movies
+-- 10. Best Film Category
+-- 11. 
+
+-- ------------------------------ Film and language table Exploration And Insights -----------------
+-- Maximum length movie with its language and actor 
+-- Check for distinct language
+SELECT DISTINCT name 
+FROM language;
+-- Films are available in 6 languages.
+
+SELECT title,length
+FROM film
+WHERE length = (
+	SELECT MAX(length) 
+	FROM film
+	);
+-- Maximum length of movies is 185.
+SELECT COUNT(title)
+FROM film
+WHERE length = (
+	SELECT MAX(length) 
+	FROM film
+	);
+-- There are 10 longest length films of 185. So lets see actors and its language
+SELECT f.title,f.length,l.name, (a.first_name || ' ' || a.last_name) AS actor_name
+FROM film f
+INNER JOIN language l
+ON f.language_id = l.language_id
+INNER JOIN film_actor fa
+ON fa.film_id = f.film_id
+INNER JOIN actor a
+ON fa.actor_id = a.actor_id
+WHERE length = (
+	SELECT MAX(length) 
+	FROM film
+	)
+ORDER BY f.title;
+
+--          ----------------- Insights -----------
+/*
+	1. All longest length films are in English Language
+	2. There are 10 movies of longest length.
+
+*/
+
+-- ----------------------------------------------------------
+-- ----------------------------------------------------------
+-- Release Year
+SELECT DISTINCT release_year
+FROM film;
+
+SELECT release_year,COUNT(film_id) AS Yearwise_movie_release
+FROM film
+GROUP BY release_year
+ORDER BY COUNT(film_id) DESC;
+-- ---------------- Insight ---------
+-- Data is for only year 2006 and total Thousand movies are released in 2006.
+
+-- ------------------------------------------------------------------
+-- ------------------------------------------------------------------
+-- Replacement_cost
+SELECT l.name, AVG(f.replacement_cost) AS avg_replcmnt_cost
+FROM language l
+INNER JOIN film f
+ON l.language_id = f.language_id
+GROUP BY l.name
+ORDER BY AVG(f.replacement_cost) DESC;
+-- Only English languagge has aggregate value, So check for other language films
+-- 
+
+-- 1st Method
+SELECT title
+FROM film
+WHERE language_id IN (
+	SELECT language_id
+	FROM language
+	WHERE name IN ( 'French', 'German','Japanese','Italian','Mandarin')
+	);
+-- 2nd method
+SELECT title
+FROM film
+WHERE language_id IN (
+	SELECT language_id
+	FROM language
+	WHERE name != 'English'
+	);
+--  There are no movies in other language than English.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
