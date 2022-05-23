@@ -44,6 +44,22 @@ INNER JOIN basic_pays as bp
 ON e.employee_id = bp.employee_id;
 
 
+-- Rank Functions - 
+
+--  List of all employees whoose salary is among top 10 employees
+WITH salary_summary AS 
+(
+SELECT first_name,
+	last_name,
+    salary,
+    RANK() OVER (ORDER BY salary DESC) AS salary_rank
+FROM employees
+)
+SELECT * FROM salary_summary
+WHERE salary_rank <=10;
+
+
+
 
 
 
