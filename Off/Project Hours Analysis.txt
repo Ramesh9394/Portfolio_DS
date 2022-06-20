@@ -1,0 +1,16 @@
+Steps 
+1. Create new columns from 15D to seperate station and greifer
+2. Create new column from Unit to sepearte Pin, Spanner and Swhenker
+3. For Hours booking for supplier, we will use pandas library. there will increase hours by 5-7%.
+4.
+
+
+Dashboarding Steps
+1. Show all the hours required for the concept to Delivery including coordination.
+2. show count of all station, greifers, units(Pins, Spanners, Schwenkers etc)
+3. Do supplier analysis
+	3.1 All hours 
+	3.2 Show table showing % extra hours taken to finish the task.
+	3.3. 
+4. Add filters for Station type, Unit type, Supplier, AFO, Line Type, Project
+5. 
